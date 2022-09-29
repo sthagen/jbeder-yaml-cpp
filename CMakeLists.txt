@@ -46,7 +46,6 @@ if (YAML_BUILD_SHARED_LIBS)
 else()
   set(yaml-cpp-type STATIC)
   set(yaml-cpp-label-postfix "static")
-  add_definitions(-DYAML_CPP_STATIC_DEFINE)
 endif()
 
 set(build-shared $<BOOL:${YAML_BUILD_SHARED_LIBS}>)
@@ -106,11 +105,15 @@ if (NOT DEFINED CMAKE_CXX_STANDARD)
       CXX_STANDARD 11)
 endif()
 
+if(YAML_CPP_MAIN_PROJECT)
+  target_compile_options(yaml-cpp
+    PRIVATE
+      $<${not-msvc}:-Wall -Wextra -Wshadow -Weffc++ -Wno-long-long>
+      $<${not-msvc}:-pedantic -pedantic-errors>)
+endif()
+
 target_compile_options(yaml-cpp
   PRIVATE
-    $<${not-msvc}:-Wall -Wextra -Wshadow -Weffc++ -Wno-long-long>
-    $<${not-msvc}:-pedantic -pedantic-errors>
-
     $<$<AND:${backport-msvc-runtime},${msvc-rt-mtd-static}>:-MTd>
     $<$<AND:${backport-msvc-runtime},${msvc-rt-mt-static}>:-MT>
     $<$<AND:${backport-msvc-runtime},${msvc-rt-mtd-dll}>:-MDd>
@@ -123,6 +126,8 @@ target_compile_options(yaml-cpp
     $<$<CXX_COMPILER_ID:MSVC>:/W3 /wd4127 /wd4355>)
 
 target_compile_definitions(yaml-cpp
+  PUBLIC
+    $<$<NOT:$<BOOL:${YAML_BUILD_SHARED_LIBS}>>:YAML_CPP_STATIC_DEFINE>
   PRIVATE
     $<${build-windows-dll}:${PROJECT_NAME}_DLL>
     $<$<NOT:$<BOOL:${YAML_CPP_BUILD_CONTRIB}>>:YAML_CPP_NO_CONTRIB>)
@@ -142,15 +147,13 @@ set_target_properties(yaml-cpp PROPERTIES
   PROJECT_LABEL "yaml-cpp ${yaml-cpp-label-postfix}"
   DEBUG_POSTFIX "${CMAKE_DEBUG_POSTFIX}")
 
-# FIXME(felix2012): A more common place for the cmake export would be
-# `CMAKE_INSTALL_LIBDIR`, as e.g. done in ubuntu or in this project for GTest
-set(CONFIG_EXPORT_DIR "${CMAKE_INSTALL_DATADIR}/cmake/yaml-cpp")
+set(CONFIG_EXPORT_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/yaml-cpp")
 set(EXPORT_TARGETS yaml-cpp)
 configure_package_config_file(
   "${PROJECT_SOURCE_DIR}/yaml-cpp-config.cmake.in"
   "${PROJECT_BINARY_DIR}/yaml-cpp-config.cmake"
   INSTALL_DESTINATION "${CONFIG_EXPORT_DIR}"
-  PATH_VARS CMAKE_INSTALL_INCLUDEDIR CONFIG_EXPORT_DIR)
+  PATH_VARS CMAKE_INSTALL_INCLUDEDIR CMAKE_INSTALL_LIBDIR CONFIG_EXPORT_DIR YAML_BUILD_SHARED_LIBS)
 unset(EXPORT_TARGETS)
 
 write_basic_package_version_file(
@@ -175,7 +178,7 @@ if (YAML_CPP_INSTALL)
       "${PROJECT_BINARY_DIR}/yaml-cpp-config-version.cmake"
     DESTINATION "${CONFIG_EXPORT_DIR}")
   install(FILES "${PROJECT_BINARY_DIR}/yaml-cpp.pc"
-    DESTINATION ${CMAKE_INSTALL_DATADIR}/pkgconfig)
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 endif()
 unset(CONFIG_EXPORT_DIR)
 
@@ -193,4 +196,15 @@ if (YAML_CPP_FORMAT_SOURCE AND YAML_CPP_CLANG_FORMAT_EXE)
     COMMAND_EXPAND_LISTS
     COMMENT "Running clang-format"
     VERBATIM)
+endif()
+
+# uninstall target
+if(NOT TARGET uninstall)
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+    IMMEDIATE @ONLY)
+
+  add_custom_target(uninstall
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 endif()

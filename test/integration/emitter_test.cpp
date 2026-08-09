@@ -1946,5 +1946,118 @@ TEST_F(EmitterTest, ShowTrailingZero) {
 - .nan)");
 }
 
+TEST_F(EmitterTest, CommentInsideMapValueIsIndented) {
+  out << YAML::BeginMap << YAML::Key << "foo" << YAML::BeginMap
+      << YAML::Comment("Comment") << YAML::Key << "bar" << YAML::Value << true
+      << YAML::EndMap << YAML::EndMap;
+
+  ExpectEmit(
+      "foo:\n"
+      "  # Comment\n"
+      "  bar: true");
+}
+
+TEST_F(EmitterTest, CommentInsideDoubleNestedMapIsIndented) {
+  out << YAML::BeginMap << YAML::Key << "map1" << YAML::Value << YAML::BeginMap
+      << YAML::Key << "map2" << YAML::Value << YAML::BeginMap
+      << YAML::Comment("nested comment") << YAML::Key << "foo" << YAML::Value
+      << "bar" << YAML::EndMap << YAML::EndMap << YAML::EndMap;
+
+  ExpectEmit(
+      "map1:\n"
+      "  map2:\n"
+      "    # nested comment\n"
+      "    foo: bar");
+}
+
+TEST_F(EmitterTest, CommentAtEndOfDoubleNestedMapIsIndented) {
+  out << YAML::BeginMap << YAML::Key << "map1" << YAML::Value << YAML::BeginMap
+      << YAML::Key << "map2" << YAML::Value << YAML::BeginMap << YAML::Key
+      << "foo" << YAML::Value << "bar" << YAML::Newline
+      << YAML::Comment("nested comment at the end") << YAML::EndMap
+      << YAML::EndMap << YAML::EndMap;
+
+  ExpectEmit(
+      "map1:\n"
+      "  map2:\n"
+      "    foo: bar\n"
+      "    # nested comment at the end");
+}
+
+TEST_F(EmitterTest, CommentAfterNestedMapUsesParentIndentation) {
+  out << YAML::BeginMap << YAML::Key << "map1" << YAML::Value << YAML::BeginMap
+      << YAML::Key << "map2" << YAML::Value << YAML::BeginMap << YAML::Key
+      << "foo" << YAML::Value << "bar" << YAML::EndMap << YAML::Newline
+      << YAML::Comment("nested comment outside of map2") << YAML::EndMap
+      << YAML::EndMap;
+
+  ExpectEmit(
+      "map1:\n"
+      "  map2:\n"
+      "    foo: bar\n"
+      "  # nested comment outside of map2");
+}
+
+TEST_F(EmitterTest, CommentInsideFlowMapIsUnaffected) {
+  out << YAML::BeginMap << YAML::Key << "some_map" << YAML::Value << YAML::Flow
+      << YAML::BeginMap << YAML::Key << "foo" << YAML::Value << "bar"
+      << YAML::Comment("comment") << YAML::Key << "key2" << YAML::Value
+      << "value2" << YAML::EndMap << YAML::EndMap;
+
+  ExpectEmit(
+      "some_map: {foo: bar,  # comment\n"
+      "key2: value2}");
+}
+
+TEST_F(EmitterTest, EmitEmptyNode) {
+  Node node;
+  out << node;
+  ExpectEmit("");
+}
+
+TEST_F(EmitterTest, EmitSetVerbatimTag) {
+  Node node, root;
+  node = 42;
+  node.SetTag("hello");
+  root["num"] = node;
+
+  out << root;
+  ExpectEmit("num: !<hello> 42");
+}
+
+// Regression for #1373: emitting a node whose tag begins with "!!"
+// (a YAML secondary tag handle, e.g. "!!str") used to bail out with
+// INVALID_TAG and truncate the output after the first '!'.
+TEST_F(EmitterTest, EmitSetTagSecondaryHandle) {
+  Node root;
+  Node string_node{"hello"};
+  string_node.SetTag("!!str");
+  root["some_string"] = string_node;
+  root["some_int"] = 2;
+
+  out << root;
+  ExpectEmit("some_string: !!str hello\nsome_int: 2");
+}
+
+TEST_F(EmitterTest, EmitSetTagPrimaryHandle) {
+  Node root;
+  Node string_node{"hello"};
+  string_node.SetTag("!mytag");
+  root["v"] = string_node;
+
+  out << root;
+  ExpectEmit("v: !mytag hello");
+}
+
+TEST_F(EmitterTest, EmitSetLocalTagInNameHandle) {
+  Node node, root;
+  node = 42;
+  node.SetTag("!a!foo");
+  root["num"] = node;
+
+  out << root;
+  ExpectEmit("num: !a!foo 42");
+}
+
 }  // namespace
 }  // namespace YAML

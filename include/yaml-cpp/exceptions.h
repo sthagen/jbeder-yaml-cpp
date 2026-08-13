@@ -1,11 +1,20 @@
 #ifndef EXCEPTIONS_H_62B23520_7C8E_11DE_8A39_0800200C9A66
 #define EXCEPTIONS_H_62B23520_7C8E_11DE_8A39_0800200C9A66
 
+
+
+
 #if defined(_MSC_VER) ||                                            \
     (defined(__GNUC__) && (__GNUC__ == 3 && __GNUC_MINOR__ >= 4) || \
      (__GNUC__ >= 4))  // GCC supports "pragma once" correctly since 3.4
 #pragma once
+
+
 #endif
+
+// IWYU pragma: private, include "yaml-cpp/yaml.h"
+// IWYU pragma: friend "yaml-cpp/.*"
+
 
 #include "yaml-cpp/mark.h"
 #include "yaml-cpp/noexcept.h"
@@ -91,6 +100,8 @@ const char* const INVALID_TAG = "invalid tag";
 const char* const BAD_FILE = "bad file";
 const char* const UNEXPECTED_TOKEN_AFTER_DOC = "unexpected token after end of document";
 const char* const NON_UNIQUE_MAP_KEY = "map keys must be unique";
+
+const char* const INDENT_STACK_UNDERFLOW = "indentation stack underflow (please report this bug to yaml-cpp)";
 
 template <typename T>
 inline const std::string KEY_NOT_FOUND_WITH_KEY(

@@ -1,11 +1,20 @@
 #ifndef EMITTER_H_62B23520_7C8E_11DE_8A39_0800200C9A66
 #define EMITTER_H_62B23520_7C8E_11DE_8A39_0800200C9A66
 
+
+
+
 #if defined(_MSC_VER) ||                                            \
     (defined(__GNUC__) && (__GNUC__ == 3 && __GNUC_MINOR__ >= 4) || \
      (__GNUC__ >= 4))  // GCC supports "pragma once" correctly since 3.4
 #pragma once
+
+
 #endif
+
+// IWYU pragma: private, include "yaml-cpp/yaml.h"
+// IWYU pragma: friend "yaml-cpp/.*"
+
 
 #include <cmath>
 #include <cstddef>
@@ -50,7 +59,7 @@ class YAML_CPP_API Emitter {
 
   // state checking
   bool good() const;
-  const std::string GetLastError() const;
+  std::string GetLastError() const;
 
   // global setters
   bool SetOutputCharset(EMITTER_MANIP value);
@@ -136,7 +145,6 @@ class YAML_CPP_API Emitter {
 
   const char* ComputeFullBoolName(bool b) const;
   const char* ComputeNullName() const;
-  bool CanEmitNewline() const;
 
  private:
   std::unique_ptr<EmitterState> m_pState;

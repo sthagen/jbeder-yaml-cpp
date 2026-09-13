@@ -983,13 +983,13 @@ Emitter& Emitter::Write(const Binary& binary) {
   if (!good())
     return *this;
 
-  const StringFormat::value strFormat = 
+  const StringFormat::value strFormat =
       Utils::ComputeBinaryFormat(binary, m_pState->GetStringFormat(),
                                  m_pState->CurGroupFlowType());
 
-  if (strFormat == StringFormat::Literal) 
+  if (strFormat == StringFormat::Literal)
     m_pState->SetMapKeyFormat(YAML::LongKey, FmtScope::Local);
-  
+
   PrepareNode(EmitterNodeType::Scalar);
 
   switch (strFormat) {
@@ -1004,8 +1004,8 @@ Emitter& Emitter::Write(const Binary& binary) {
       Utils::WriteBinary(m_stream, binary);
       break;
     case StringFormat::Literal:
-      Utils::WriteLiteralBinary(m_stream, binary, 
-                                m_pState->CurIndent() + m_pState->GetIndent(), 
+      Utils::WriteLiteralBinary(m_stream, binary,
+                                m_pState->CurIndent() + m_pState->GetIndent(),
                                 m_pState->GetWrap());
       break;
   }

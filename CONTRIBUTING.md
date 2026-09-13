@@ -21,6 +21,15 @@ Please verify the tests pass by configuring CMake with `-D YAML_CPP_BUILD_TESTS=
 
 If you are adding functionality, add tests accordingly. Note that the "spec tests" are reserved for examples directly from the YAML spec, so if you have new examples, put them in other test files.
 
+# Whitespace
+
+Maintained text files must not contain trailing spaces or tabs. Each line
+must end with an LF character, and non-empty files must have exactly one final
+LF. The vendored GoogleTest sources are excluded from this check.
+
+You may run `python3 util/check-whitespace.py` to check whitespace before
+submitting a pull request.
+
 # Pull request process
 
 Every pull request undergoes a code review. Unfortunately, github's code review process isn't great, but we'll manage. During the code review, if you make changes, add new commits to the pull request for each change. Once the code review is complete, rebase against the master branch and squash into a single commit.

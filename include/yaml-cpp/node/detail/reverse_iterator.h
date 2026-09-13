@@ -39,7 +39,7 @@ class reverse_iterator_base {
 
  public:
   using iterator_type = Iter;
-  using iterator_category = typename std::iterator_traits<Iter>::iterator_category;  
+  using iterator_category = typename std::iterator_traits<Iter>::iterator_category;
   using value_type = typename std::iterator_traits<Iter>::value_type;
   using difference_type = typename std::iterator_traits<Iter>::difference_type;
   using pointer = typename std::iterator_traits<Iter>::pointer;
@@ -53,7 +53,7 @@ class reverse_iterator_base {
                 typename std::enable_if<std::is_convertible<Iter2, Iter>::value,
                                         enabler>::type = enabler())
       : current(_other.current) {}
-  
+
   reverse_iterator_base<Iter>& operator++() {
     --current;
     return *this;
@@ -64,7 +64,7 @@ class reverse_iterator_base {
     ++(*this);
     return iterator_pre;
   }
-  
+
   reverse_iterator_base<Iter>& operator--() {
     ++current;
     return *this;

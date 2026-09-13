@@ -305,7 +305,7 @@ StringFormat::value ComputeBinaryFormat(const Binary &bin,
   switch (strFormat) {
     case Auto:
       if (bin.size() > 0u) {
-        return StringFormat::Plain; 
+        return StringFormat::Plain;
       }
       return StringFormat::DoubleQuoted;
     case SingleQuoted:

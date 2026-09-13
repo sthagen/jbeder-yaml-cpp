@@ -19,6 +19,11 @@ TEST(BinaryTest, DecodingTooShort) {
   EXPECT_TRUE(result.empty());
 }
 
+TEST(BinaryTest, DecodingWhitespaceBetweenPadding) {
+  const std::vector<unsigned char> &result = YAML::DecodeBase64("TQ= =");
+  EXPECT_EQ(std::vector<unsigned char>{'M'}, result);
+}
+
 TEST(BinaryTest, EmptyBinary) {
     YAML::Binary b;
     EXPECT_TRUE(b.size() == 0);

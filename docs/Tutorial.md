@@ -224,7 +224,7 @@ public:
     node["a"] = a;
     return node;
   }
-  
+
   int a;
 };
 
@@ -252,7 +252,7 @@ public:
 
 // Implementation of convert::{encode,decode} for all classes derived from or being A
 namespace YAML {
-  template<typename T> 
+  template<typename T>
   struct convert<T, typename std::enable_if<std::is_base_of<A, T>::value>::type> {
     static Node encode(const T &rhs) {
       Node node = rhs.emit();

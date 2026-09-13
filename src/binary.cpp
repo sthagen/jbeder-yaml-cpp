@@ -75,6 +75,7 @@ std::vector<unsigned char> DecodeBase64(const std::string &input) {
 
   unsigned value = 0;
   std::size_t cnt = 0;
+  bool previous_was_padding = false;
   for (std::size_t i = 0; i < input.size(); i++) {
     if (std::isspace(static_cast<unsigned char>(input[i]))) {
       // skip newlines
@@ -87,7 +88,7 @@ std::vector<unsigned char> DecodeBase64(const std::string &input) {
     value = (value << 6) | d;
     if (cnt == 3) {
       *out++ = value >> 16;
-      if (i > 0 && input[i - 1] != '=')
+      if (!previous_was_padding)
         *out++ = value >> 8;
       if (input[i] != '=')
         *out++ = value;
@@ -95,6 +96,7 @@ std::vector<unsigned char> DecodeBase64(const std::string &input) {
     } else {
       ++cnt;
     }
+    previous_was_padding = input[i] == '=';
   }
   if (cnt != 0) {
     // An invalid number of characters were encountered.

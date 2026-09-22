@@ -203,7 +203,7 @@ bool IsValidSingleQuotedScalar(const char* str, std::size_t size, bool escapeNon
   // TODO: check for non-printable characters?
   return std::none_of(str, str + size, [=](char ch) {
     return (escapeNonAscii && (0x80 <= static_cast<unsigned char>(ch))) ||
-           (ch == '\n');
+           (ch == '\n') || (ch == '\r');
   });
 }
 
@@ -214,8 +214,11 @@ bool IsValidLiteralScalar(const char* str, std::size_t size, FlowType::value flo
   }
 
   // TODO: check for non-printable characters?
+  // A carriage return is a line break to the parser, so a block scalar cannot
+  // carry one; leave those to the double-quoted form.
   return std::none_of(str, str + size, [=](char ch) {
-    return (escapeNonAscii && (0x80 <= static_cast<unsigned char>(ch)));
+    return (escapeNonAscii && (0x80 <= static_cast<unsigned char>(ch))) ||
+           (ch == '\r');
   });
 }
 
@@ -329,7 +332,7 @@ bool WriteSingleQuotedString(ostream_wrapper& out, const char* str, std::size_t 
   int codePoint;
   for (const char* i = str;
        GetNextCodePointAndAdvance(codePoint, i, str + size);) {
-    if (codePoint == '\n') {
+    if (codePoint == '\n' || codePoint == '\r') {
       return false;  // We can't handle a new line and the attendant indentation
                      // yet
     }
@@ -463,7 +466,10 @@ bool WriteComment(ostream_wrapper& out, const char* str, std::size_t size,
   int codePoint;
   for (const char* i = str;
        GetNextCodePointAndAdvance(codePoint, i, str + size);) {
-    if (codePoint == '\n') {
+    if (codePoint == '\n' || codePoint == '\r') {
+      if (codePoint == '\r' && i != str + size && *i == '\n') {
+        ++i;  // a CRLF pair is a single break
+      }
       out << "\n"
           << IndentTo(curIndent) << "#" << Indentation(postCommentIndent);
       out.set_comment();

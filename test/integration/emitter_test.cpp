@@ -127,6 +127,17 @@ TEST_F(EmitterTest, UnsignedEightBitInteger) {
   ExpectEmit("- 16");
 }
 
+TEST_F(EmitterTest, SignedEightBitInteger) {
+  // int8_t has no operator<< of its own and reaches the int overload by
+  // integral promotion; pin that so adding one cannot silently make it a char
+  out << BeginSeq;
+  out << std::int8_t{16};
+  out << std::int8_t{-7};
+  out << EndSeq;
+
+  ExpectEmit("- 16\n- -7");
+}
+
 TEST_F(EmitterTest, NumberPrecision) {
   out.SetFloatPrecision(3);
   out.SetDoublePrecision(2);
@@ -452,6 +463,22 @@ TEST_F(EmitterTest, LiteralWithAndWithoutTrailingEmptyLines) {
       "- |\n  A\n  B\n"
       "- |+\n  A\n  B\n\n\n"
       "- something");
+}
+
+TEST_F(EmitterTest, SingleQuotedWithCarriageReturn) {
+  out << BeginMap;
+  out << Key << "key" << Value << SingleQuoted << "a\rb";
+  out << EndMap;
+
+  ExpectEmit("key: \"a\\rb\"");
+}
+
+TEST_F(EmitterTest, LiteralWithCarriageReturn) {
+  out << BeginMap;
+  out << Key << "key" << Value << Literal << "a\rb";
+  out << EndMap;
+
+  ExpectEmit("key: \"a\\rb\"");
 }
 
 
@@ -808,6 +835,26 @@ TEST_F(EmitterTest, MultiLineComment) {
   ExpectEmit(
       "- item 1  # really really long\n          # comment that couldn't "
       "possibly\n          # fit on one line\n- item 2");
+}
+
+TEST_F(EmitterTest, MultiLineCommentWithCarriageReturn) {
+  out << BeginSeq;
+  out << "item 1" << Comment("really long\rcomment on two lines");
+  out << "item 2";
+  out << EndSeq;
+
+  ExpectEmit(
+      "- item 1  # really long\n          # comment on two lines\n- item 2");
+}
+
+TEST_F(EmitterTest, MultiLineCommentWithCarriageReturnLineFeed) {
+  out << BeginSeq;
+  out << "item 1" << Comment("really long\r\ncomment on two lines");
+  out << "item 2";
+  out << EndSeq;
+
+  ExpectEmit(
+      "- item 1  # really long\n          # comment on two lines\n- item 2");
 }
 
 TEST_F(EmitterTest, ComplexComments) {
